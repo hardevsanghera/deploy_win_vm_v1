@@ -1,0 +1,43 @@
+{
+  "metadata": {
+       "kind": "vm"
+  },
+  "spec": {
+        "name": "XXVMNAMEXX",
+         "resources": {
+                 "nic_list": [{
+                      "subnet_reference": {
+                              "kind": "subnet",
+                               "uuid": "XXSUBNETUUIDXX"
+                        }
+                    }],
+                  "disk_list": [{
+                         "data_source_reference": {
+                               "kind": "image",
+                                "uuid": "XXIMAGEUUIDXX"
+                          },
+                             "device_properties": {
+                             "device_type": "DISK",
+                             "disk_address": {
+                                   "adapter_type": "SCSI",
+                                    "device_index": 0
+                              }
+                            }
+                        }],
+                     "memory_size_mib": 8096,
+                     "num_sockets": 1,
+                     "num_vcpus_per_socket": 4,
+                     "power_state": "ON",
+                     "guest_customization": {
+                           "sysprep": {
+                                 "install_type": "PREPARED",
+                                 "unattend_xml": "XXUSERDATAXX"
+                            }
+                         }
+                        },
+                   "cluster_reference": {
+                         "kind": "cluster",
+                          "uuid": "XXCLUSTERUUIDXX"
+                     }
+               }
+}

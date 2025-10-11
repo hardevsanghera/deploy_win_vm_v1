@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<unattend xmlns="urn:schemas-microsoft-com:unattend">
+  <settings pass="specialize">
+     <component xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+        <ComputerName>IIS-server</ComputerName>
+        <RegisteredOrganization>Dev</RegisteredOrganization>
+        <RegisteredOwner>Dev</RegisteredOwner>
+        <TimeZone>UTC</TimeZone>
+     </component>
+     <component xmlns="" name="Microsoft-Windows-TerminalServices-LocalSessionManager" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" processorArchitecture="amd64">
+        <fDenyTSConnections>false</fDenyTSConnections>
+     </component>
+     <component xmlns="" name="Microsoft-Windows-TerminalServices-RDP-WinStationExtensions" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" processorArchitecture="amd64">
+        <UserAuthentication>0</UserAuthentication>
+     </component>
+     <component xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Networking-MPSSVC-Svc" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+        <FirewallGroups>
+           <FirewallGroup wcm:action="add" wcm:keyValue="RemoteDesktop">
+              <Active>true</Active>
+              <Profile>all</Profile>
+              <Group>@FirewallAPI.dll,-28752</Group>
+           </FirewallGroup>
+           <FirewallGroup wcm:action="add" wcm:keyValue="ICMPv4">
+              <Active>true</Active>
+              <Profile>all</Profile>
+              <Group>@FirewallAPI.dll,-28502</Group>
+           </FirewallGroup>
+        </FirewallGroups>
+     </component>
+  </settings>
+  <settings pass="oobeSystem">
+     <component xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+        <UserAccounts>
+           <AdministratorPassword>
+              <Value>password123</Value>
+              <PlainText>true</PlainText>
+           </AdministratorPassword>
+        </UserAccounts>
+        <AutoLogon>
+           <Password>
+              <Value>password123</Value>
+              <PlainText>true</PlainText>
+           </Password>
+           <Enabled>true</Enabled>
+           <Username>Administrator</Username>
+        </AutoLogon>
+        <FirstLogonCommands>
+           <SynchronousCommand wcm:action="add">
+              <CommandLine>cmd.exe /c netsh firewall add portopening TCP 5985 "Port 5985"</CommandLine>
+              <Description>Win RM port open</Description>
+              <Order>1</Order>
+              <RequiresUserInput>true</RequiresUserInput>
+           </SynchronousCommand>
+           <SynchronousCommand wcm:action="add">
+              <CommandLine>powershell -Command "Enable-PSRemoting -SkipNetworkProfileCheck -Force"</CommandLine>
+              <Description>Enable PS-Remoting</Description>
+              <Order>2</Order>
+              <RequiresUserInput>true</RequiresUserInput>
+           </SynchronousCommand>
+           <SynchronousCommand wcm:action="add">
+              <CommandLine>powershell -Command "Set-ExecutionPolicy -ExecutionPolicy RemoteSigned"</CommandLine>
+              <Description>Enable Remote-Signing</Description>
+              <Order>3</Order>
+              <RequiresUserInput>false</RequiresUserInput>
+           </SynchronousCommand>
+           <SynchronousCommand wcm:action="add">
+              <CommandLine>cmd.exe /c reg ADD HKLM\SYSTEM\CurrentControlSet\Control\Network\NewNetworkWindowOff /f</CommandLine>
+              <Description>Turn Off Network Discovery</Description>
+              <Order>4</Order>
+              <RequiresUserInput>false</RequiresUserInput>
+           </SynchronousCommand>
+           <SynchronousCommand wcm:action="add">
+              <CommandLine>cmd.exe /c netsh advfirewall firewall set rule group="Network Discovery" new enable=No</CommandLine>
+              <Description>Turn Off Network Discovery</Description>
+              <Order>5</Order>
+              <RequiresUserInput>false</RequiresUserInput>
+           </SynchronousCommand>
+           <SynchronousCommand wcm:action="add">
+              <CommandLine>cmd.exe /c netsh advfirewall firewall set rule group="File and Printer Sharing (Echo Request - ICMPv4-In)" new enable=Yes</CommandLine>
+              <Description>Enable ICMP Ping Response</Description>
+              <Order>6</Order>
+              <RequiresUserInput>false</RequiresUserInput>
+           </SynchronousCommand>
+           <SynchronousCommand wcm:action="add">
+              <CommandLine>cmd.exe /c reg ADD "HKLM\SOFTWARE\Microsoft\Active Setup\Installed Components\{A509B1A7-37FD-4b5f-84B7-617873DDBCC8}" /v IsInstalled /t REG_DWORD /d 0 /f</CommandLine>
+              <Description>Disable IE Enhanced Security for Administrators</Description>
+              <Order>7</Order>
+              <RequiresUserInput>false</RequiresUserInput>
+           </SynchronousCommand>
+           <SynchronousCommand wcm:action="add">
+              <CommandLine>cmd.exe /c reg ADD "HKLM\SOFTWARE\Microsoft\Active Setup\Installed Components\{A509B1A8-37FD-4b5f-84B7-617873DDBCC8}" /v IsInstalled /t REG_DWORD /d 0 /f</CommandLine>
+              <Description>Disable IE Enhanced Security for Users</Description>
+              <Order>8</Order>
+              <RequiresUserInput>false</RequiresUserInput>
+           </SynchronousCommand>
+           <SynchronousCommand wcm:action="add">
+              <CommandLine>powershell -Command "Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components\{A509B1A7-37FD-4b5f-84B7-617873DDBCC8}' -Name IsInstalled -Value 0 -Force"</CommandLine>
+              <Description>PowerShell - Disable IE ESC for Administrators</Description>
+              <Order>9</Order>
+              <RequiresUserInput>false</RequiresUserInput>
+           </SynchronousCommand>
+           <SynchronousCommand wcm:action="add">
+              <CommandLine>powershell -Command "Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components\{A509B1A8-37FD-4b5f-84B7-617873DDBCC8}' -Name IsInstalled -Value 0 -Force"</CommandLine>
+              <Description>PowerShell - Disable IE ESC for Users</Description>
+              <Order>10</Order>
+              <RequiresUserInput>false</RequiresUserInput>
+           </SynchronousCommand>
+           <SynchronousCommand wcm:action="add">
+              <CommandLine>powershell -Command "Stop-Process -Name ServerManager -Force -ErrorAction SilentlyContinue"</CommandLine>
+              <Description>Stop Server Manager process to refresh ESC status</Description>
+              <Order>11</Order>
+              <RequiresUserInput>false</RequiresUserInput>
+           </SynchronousCommand>
+           <SynchronousCommand wcm:action="add">
+              <CommandLine>cmd.exe /c reg ADD "HKLM\SOFTWARE\Microsoft\ServerManager" /v DoNotOpenServerManagerAtLogon /t REG_DWORD /d 1 /f</CommandLine>
+              <Description>Disable Server Manager at startup</Description>
+              <Order>12</Order>
+              <RequiresUserInput>false</RequiresUserInput>
+           </SynchronousCommand>
+           <SynchronousCommand wcm:action="add">
+              <CommandLine>cmd.exe /c reg ADD "HKLM\SOFTWARE\Microsoft\ServerManager\WindowsAdminCenter" /v DoNotPopWACConsoleAtSMLaunch /t REG_DWORD /d 1 /f</CommandLine>
+              <Description>Disable Windows Admin Center promotion message</Description>
+              <Order>13</Order>
+              <RequiresUserInput>false</RequiresUserInput>
+           </SynchronousCommand>
+           <SynchronousCommand wcm:action="add">
+              <CommandLine>powershell -Command "New-Item -Path 'HKLM:\SOFTWARE\Microsoft\ServerManager\WindowsAdminCenter' -Force; Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\ServerManager\WindowsAdminCenter' -Name DoNotPopWACConsoleAtSMLaunch -Value 1 -Type DWord -Force"</CommandLine>
+              <Description>PowerShell - Ensure WAC message is disabled</Description>
+              <Order>14</Order>
+              <RequiresUserInput>false</RequiresUserInput>
+           </SynchronousCommand>
+           <SynchronousCommand wcm:action="add">
+              <CommandLine>cmd.exe /c echo Sysprep completed successfully at %date% %time% > C:\Windows\temp\HARDEV.txt</CommandLine>
+              <Description>Create HARDEV.txt file</Description>
+              <Order>15</Order>
+              <RequiresUserInput>false</RequiresUserInput>
+           </SynchronousCommand>
+        </FirstLogonCommands>
+        <OOBE>
+           <HideEULAPage>true</HideEULAPage>
+           <SkipMachineOOBE>true</SkipMachineOOBE>
+        </OOBE>
+     </component>
+     <component xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Microsoft-Windows-International-Core" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+        <InputLocale>en-US</InputLocale>
+        <SystemLocale>en-US</SystemLocale>
+        <UILanguageFallback>en-us</UILanguageFallback>
+        <UILanguage>en-US</UILanguage>
+           <UserLocale>en-US</UserLocale>
+     </component>
+  </settings>
+</unattend>
