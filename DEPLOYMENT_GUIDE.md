@@ -5,7 +5,81 @@ The script now supports two modes:
 1. **Resource Selection Mode** (default) - Select cluster, subnet, image, and sysprep file
 2. **Deployment Mode** (`--deploy` flag) - Deploy VM using saved configuration
 
+## Prerequisites: Python Virtual Environment Setup
+
+### Step 1: Create Virtual Environment
+Navigate to your project directory and create a new virtual environment:
+
+```powershell
+# Navigate to project directory
+cd C:\Users\hardev.sanghera\Documents\v3\deploy_win_vm_v1
+
+# Create virtual environment named 'env'
+python -m venv env
+```
+
+### Step 2: Activate Virtual Environment
+Activate the virtual environment using PowerShell:
+
+```powershell
+# Activate virtual environment
+.\env\Scripts\Activate.ps1
+```
+
+**Note**: If you encounter an execution policy error, run this command first:
+```powershell
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+
+### Step 3: Install Required Packages
+With the virtual environment activated, install the required Python packages:
+
+```powershell
+# Install packages from requirements.txt
+pip install -r requirements.txt
+
+# Or install manually
+pip install requests>=2.25.1 urllib3>=1.26.0
+```
+
+### Step 4: Verify Installation
+Verify that the packages are installed correctly:
+
+```powershell
+# Check installed packages
+pip list
+
+# Should show:
+# requests    2.32.5 (or newer)
+# urllib3     2.5.0 (or newer)
+```
+
+### Virtual Environment Management
+
+**Activate environment** (run this each time you open a new terminal):
+```powershell
+.\env\Scripts\Activate.ps1
+```
+
+**Deactivate environment** (when finished working):
+```powershell
+deactivate
+```
+
+**Verify environment is active** (you should see `(env)` in your prompt):
+```powershell
+PS C:\Users\hardev.sanghera\Documents\v3\deploy_win_vm_v1> # Without venv
+(env) PS C:\Users\hardev.sanghera\Documents\v3\deploy_win_vm_v1> # With venv active
+```
+
 ## Phase 1: Resource Selection
+
+**Ensure your virtual environment is activated before proceeding:**
+```powershell
+.\env\Scripts\Activate.ps1
+```
+
+Run the resource selection script:
 ```powershell
 python deploy_win_vm.py <PC_IP> <USERNAME>
 ```
@@ -20,6 +94,13 @@ This will:
 - Save your selections to `deployment_config.json`
 
 ## Phase 2: VM Deployment
+
+**Ensure your virtual environment is activated:**
+```powershell
+.\env\Scripts\Activate.ps1
+```
+
+Run the VM deployment script:
 ```powershell
 python deploy_win_vm.py --deploy
 ```
@@ -54,7 +135,7 @@ Upon successful deployment:
 - VM status information
 
 The VM will be created with:
-- Name: WINVM-A
+- Name: "as entered"
 - Memory: 8096 MB
 - CPUs: 1 socket × 4 cores
 - Power State: ON

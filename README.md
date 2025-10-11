@@ -1,17 +1,30 @@
 # Nutanix Windows VM Deployment Tool
 
-This tool helps deploy Windows VMs to Nutanix AHV clusters via Prism Central using the Nutanix v3.1 REST API.
+This tool provides a complete solution for deploying Windows VMs to Nutanix AHV clusters via Prism Central using the Nutanix v3.1 REST API. The script operates in two modes:
 
-## Phase 1: Resource Selection
+1. **Resource Selection Mode** - Interactive selection of deployment resources
+2. **VM Deployment Mode** - Automated VM creation using saved configuration
 
-### Overview
-The `deploy_win_vm.py` script connects to Nutanix Prism Central and displays all available:
-- **Clusters** - Target AHV clusters for VM deployment
-- **Subnets** - Available network subnets for VM connectivity  
-- **Images** - Available disk images for VM creation
-- **Sysprep Files** - Local sysprep XML files for Windows customization
+## Overview
 
-The script allows you to interactively select the required resources for VM deployment.
+The `deploy_win_vm.py` script supports the complete VM deployment workflow:
+
+### Phase 1: Resource Selection (Default Mode)
+- Connects to Nutanix Prism Central via REST API
+- Displays all available resources with interactive selection:
+  - **Clusters** - Target AHV clusters for VM deployment
+  - **Subnets** - Available network subnets for VM connectivity  
+  - **Images** - Available disk images for VM creation
+  - **Sysprep Files** - Local sysprep XML files for Windows customization
+- Saves configuration to `deployment_config.json` for next phase
+
+### Phase 2: VM Deployment (--deploy flag)
+- Loads saved resource configuration
+- Prompts for VM name and Administrator password
+- Reads and customizes sysprep XML with VM-specific details
+- Creates VM payload from `create_vm_SKEL.json` template
+- Deploys VM via Prism Central API
+- Returns VM UUID and deployment status
 
 ### Prerequisites
 - Python 3.7+ with virtual environment activated
@@ -23,6 +36,8 @@ The script allows you to interactively select the required resources for VM depl
 - urllib3>=1.26.0
 
 ### Usage
+
+## Resource Selection Mode
 
 1. **Activate your virtual environment** (if not already active):
    ```powershell
@@ -47,12 +62,60 @@ The script allows you to interactively select the required resources for VM depl
    - Choose a disk image
    - Choose a sysprep XML file
 
-### Prerequisites for Sysprep Files
-- Place sysprep XML files in the current directory
-- Files must start with "sysprep" and end with ".xml"
-- Examples: `sysprep_windows_server.xml`, `sysprep-win2019-prod.xml`
+## VM Deployment Mode
 
-### Sample Output
+1. **Deploy VM using saved configuration**:
+   ```powershell
+   python deploy_win_vm.py --deploy
+   ```
+
+2. **Enter VM details** when prompted:
+   - VM name (max 15 characters, alphanumeric plus hyphens/underscores)
+   - Administrator password (minimum 4 characters)
+   - Confirm password
+
+3. **Confirm deployment** - Review configuration and confirm VM creation
+
+4. **Enter Prism Central password** for API authentication
+
+The script will:
+- Customize the sysprep XML with your VM name and password
+- Create the VM payload from the template
+- Deploy the VM via REST API
+- Display the VM UUID and task UUID for monitoring
+
+## VM Specifications
+
+When deployed, VMs are created with the following default specifications (defined in `create_vm_SKEL.json`):
+
+- **Memory**: 8,096 MB (8 GB)
+- **CPUs**: 1 socket × 4 cores (4 vCPUs total)
+- **Power State**: ON (VM starts automatically)
+- **Disk**: Uses selected image as boot disk on SCSI adapter
+- **Network**: Connected to selected subnet
+- **Customization**: Sysprep applied with custom computer name and Administrator password
+
+## Required Files
+
+The deployment process requires these files in the current directory:
+
+- **`create_vm_SKEL.json`** - VM creation template with placeholders
+- **`sysprep*.xml`** - Windows sysprep customization files
+- **`deployment_config.json`** - Generated during resource selection phase
+
+### VM Template Placeholders
+
+The `create_vm_SKEL.json` template uses these placeholders that are automatically replaced:
+
+- `XXVMNAMEXX` - Replaced with entered VM name
+- `XXSUBNETUUIDXX` - Replaced with selected subnet UUID
+- `XXIMAGEUUIDXX` - Replaced with selected image UUID
+- `XXCLUSTERUUIDXX` - Replaced with selected cluster UUID
+- `XXUSERDATAXX` - Replaced with Base64-encoded sysprep XML content
+
+## Sample Output
+
+### Resource Selection Phase
 ```
 Connecting to Prism Central at 10.1.1.100...
 Successfully connected to Prism Central!
@@ -72,74 +135,7 @@ Please select a cluster (1-2): 2
 Selected cluster: NTNX-Cluster-02
 UUID: 00061663-4a18-7c31-185b-ac1f6b6029e2
 
-Fetching subnets from Prism Central...
-Found 4 subnets
-
-============================================================
-AVAILABLE SUBNETS
-============================================================
- 1. Production-Network
-     UUID: 12345678-1234-5678-9abc-123456789012
-     VLAN ID: 100
-     Cluster: NTNX-Cluster-02
-
- 2. Management-Network
-     UUID: 87654321-4321-8765-cba9-210987654321
-     VLAN ID: 200
-     Cluster: NTNX-Cluster-01
-
-Please select a subnet (1-2): 1
-
-Selected subnet: Production-Network
-UUID: 12345678-1234-5678-9abc-123456789012
-VLAN ID: 100
-
-Fetching images from Prism Central...
-Found 6 images
-
-============================================================
-AVAILABLE IMAGES
-============================================================
- 1. Windows-Server-2022
-     UUID: abcd1234-5678-90ef-ghij-klmn12345678
-     Type: DISK_IMAGE
-     Size: 15.5 GB
-
- 2. CentOS-7-Template
-     UUID: efgh5678-90ab-cdef-1234-567890abcdef
-     Type: DISK_IMAGE
-     Size: 8.2 GB
-
-Please select an image (1-2): 1
-
-Selected image: Windows-Server-2022
-UUID: abcd1234-5678-90ef-ghij-klmn12345678
-Type: DISK_IMAGE
-Size: 15.5 GB
-
-Searching for sysprep XML files in: C:\Users\hardev.sanghera\Documents\v3\deploy_win_vm
-Found 3 sysprep XML file(s)
-
-============================================================
-AVAILABLE SYSPREP XML FILES
-============================================================
- 1. sysprep-win2019-AAA.xml
-     Path: C:\Users\hardev.sanghera\Documents\v3\deploy_win_vm\sysprep-win2019-AAA.xml
-     Size: 2.5 KB
-
- 2. sysprep-win2019-BBB.xml
-     Path: C:\Users\hardev.sanghera\Documents\v3\deploy_win_vm\sysprep-win2019-BBB.xml
-     Size: 3.1 KB
-
- 3. sysprep_windows_server.xml
-     Path: C:\Users\hardev.sanghera\Documents\v3\deploy_win_vm\sysprep_windows_server.xml
-     Size: 1.8 KB
-
-Please select a sysprep XML file (1-3): 3
-
-Selected sysprep file: sysprep_windows_server.xml
-Path: C:\Users\hardev.sanghera\Documents\v3\deploy_win_vm\sysprep_windows_server.xml
-Size: 1.8 KB
+[... subnet and image selection ...]
 
 Deployment configuration saved to deployment_config.json
 This file contains all settings needed for VM deployment.
@@ -151,22 +147,51 @@ target_cluster = "NTNX-Cluster-02=00061663-4a18-7c31-185b-ac1f6b6029e2"
 target_subnet  = "Production-Network=12345678-1234-5678-9abc-123456789012"
 target_image   = "Windows-Server-2022=abcd1234-5678-90ef-ghij-klmn12345678"
 sysprep_file   = "sysprep_windows_server.xml"
-
-============================================================
-DETAILED CONFIGURATION
-============================================================
-Cluster: NTNX-Cluster-02 (00061663-4a18-7c31-185b-ac1f6b6029e2)
-Subnet:  Production-Network (12345678-1234-5678-9abc-123456789012) - VLAN 100
-Image:   Windows-Server-2022 (abcd1234-5678-90ef-ghij-klmn12345678)
-         Type: DISK_IMAGE, Size: 15.5 GB
-Sysprep: sysprep_windows_server.xml (1.8 KB)
-         Path: C:\Users\hardev.sanghera\Documents\v3\deploy_win_vm\sysprep_windows_server.xml
-
-This configuration is ready for Windows VM deployment!
 ```
 
-### Generated Files
-- **deployment_config.json**: Contains the complete selected resource configuration for VM deployment
+### VM Deployment Phase
+```
+============================================================
+DEPLOYING WINDOWS VM
+============================================================
+✅ Loaded deployment configuration
+✅ Loaded VM creation template
+
+💻 Enter VM name: WIN-WEB-01
+
+🔐 Enter Administrator password: [hidden]
+🔐 Confirm Administrator password: [hidden]
+
+✅ Read and encoded sysprep file: sysprep-win2019-AAA.xml
+✅ Updated ComputerName in sysprep to: WIN-WEB-01
+✅ Updated Administrator password in sysprep
+
+🔧 Building VM payload...
+✅ VM payload built successfully
+
+📋 VM Configuration:
+  Name: WIN-WEB-01
+  Cluster: NTNX-Cluster-02 (00061663-4a18-7c31-185b-ac1f6b6029e2)
+  Subnet: Production-Network (12345678-1234-5678-9abc-123456789012)
+  Image: Windows-Server-2022 (abcd1234-5678-90ef-ghij-klmn12345678)
+  Sysprep: sysprep-win2019-AAA.xml
+
+🚀 Deploy VM 'WIN-WEB-01'? (y/N): y
+
+🌐 Making API call to: https://10.1.1.100:9440/api/nutanix/v3/vms
+
+✅ VM creation initiated successfully!
+VM UUID: def12345-6789-0abc-def1-234567890abc
+Task UUID: ghi67890-abcd-ef12-3456-7890abcdef12
+Status: PENDING
+
+📊 Check Prism Central for VM creation progress
+```
+
+## Generated Files
+
+### deployment_config.json
+Contains the complete selected resource configuration for VM deployment. Generated during resource selection phase.
 
 ### Configuration File Format
 ```json
@@ -191,32 +216,96 @@ This configuration is ready for Windows VM deployment!
 }
 ```
 
-### API Endpoints Used
+## Sysprep File Requirements
+
+Sysprep XML files must:
+- Be placed in the current directory
+- Have filenames starting with "sysprep" and ending with ".xml"
+- Contain `<ComputerName>` and `<AdministratorPassword>` elements
+- Examples: `sysprep-win2019-AAA.xml`, `sysprep-win2022-prod.xml`, `sysprep_windows_server.xml`
+
+The script automatically updates these elements in the sysprep file:
+- `<ComputerName>` - Set to the entered VM name
+- `<AdministratorPassword><Value>` - Set to the entered password
+- `<AutoLogon><Password><Value>` - Set to the entered password
+
+## API Endpoints Used
+
+### Resource Selection Phase
 - **GET https://pc_ip:9440/api/nutanix/v3/clusters/list**
   - Payload: `{"kind": "cluster"}`
+  - Purpose: Retrieve all available AHV clusters
 - **GET https://pc_ip:9440/api/nutanix/v3/subnets/list**
   - Payload: `{"kind": "subnet"}`
+  - Purpose: Retrieve all available network subnets
 - **GET https://pc_ip:9440/api/nutanix/v3/images/list**
   - Payload: `{"kind": "image"}`
-- Authentication: HTTP Basic Auth
+  - Purpose: Retrieve all available disk images
 
-### Error Handling
+### VM Deployment Phase
+- **POST https://pc_ip:9440/api/nutanix/v3/vms**
+  - Payload: Complete VM specification in JSON format
+  - Purpose: Create new VM with specified configuration
+  - Returns: VM UUID and task UUID for monitoring
+
+### Authentication
+- **Method**: HTTP Basic Authentication
+- **Header**: `Authorization: Basic <base64-encoded-credentials>`
+- **SSL**: Certificate verification disabled for self-signed certificates
+
+## Error Handling
+
 The script handles common scenarios:
-- Invalid credentials (401 authentication errors)
-- Network connectivity issues
-- API response errors
-- Invalid user input during resource selection
-- Missing or empty resource lists
 
-### Security Notes
-- Passwords are entered securely using `getpass` (hidden input)
-- SSL certificate verification is disabled for self-signed certificates
-- Credentials are not stored in any files
+### Resource Selection Phase
+- Invalid credentials (401 authentication errors)
+- Network connectivity issues to Prism Central
+- API response errors and timeouts
+- Empty resource lists (no clusters, subnets, or images)
+- Invalid user input during resource selection
+- Missing or inaccessible sysprep files
+
+### VM Deployment Phase  
+- Missing or invalid `deployment_config.json` file
+- Missing `create_vm_SKEL.json` template
+- Invalid VM name format (length and character validation)
+- Password validation and confirmation
+- Sysprep file read/write errors
+- JSON parsing errors in templates
+- API deployment failures with detailed error messages
+
+## Security Notes
+
+- **Password Security**: Passwords are entered securely using `getpass` (hidden input)
+- **SSL Certificates**: SSL certificate verification is disabled for self-signed certificates
+- **Credential Storage**: Prism Central credentials are not stored in any files
+- **Sysprep Security**: Administrator passwords are embedded in sysprep and Base64-encoded
+- **API Security**: Uses HTTP Basic Authentication over HTTPS
+
+## Workflow Summary
+
+### Complete Deployment Process
+1. **Run resource selection**: `python deploy_win_vm.py <PC_IP> <USERNAME>`
+   - Select target cluster, subnet, image, and sysprep file
+   - Configuration saved to `deployment_config.json`
+
+2. **Run VM deployment**: `python deploy_win_vm.py --deploy`
+   - Enter VM name and Administrator password
+   - VM created with custom sysprep configuration
+   - Returns VM UUID and task UUID for monitoring
+
+3. **Monitor progress**: Check Prism Central for VM creation status
+   - Use returned task UUID to track deployment progress
+   - VM will be powered on automatically after creation
 
 ## Next Steps
-After running this script successfully, you'll have:
-1. Selected target cluster, subnet, and image with their UUIDs
-2. A complete deployment configuration file
-3. The resource variables in the required format: `"resource_name=UUID"`
 
-This provides all the foundation resources needed for deploying Windows VMs to your selected Nutanix AHV cluster.
+After successful deployment:
+- VM will be created in the selected cluster
+- VM will be connected to the selected subnet  
+- VM will boot from the selected image
+- Sysprep will run on first boot with custom configuration
+- Monitor VM creation progress in Prism Central
+- Connect to VM after Windows setup completes
+
+This provides a complete automated solution for deploying customized Windows VMs to Nutanix AHV clusters.
