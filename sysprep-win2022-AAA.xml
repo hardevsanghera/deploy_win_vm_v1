@@ -130,9 +130,33 @@
               <RequiresUserInput>false</RequiresUserInput>
            </SynchronousCommand>
            <SynchronousCommand wcm:action="add">
+              <CommandLine>powershell -Command "Add-WindowsCapability -Online -Name OpenSSH.Server~~~~0.0.1.0"</CommandLine>
+              <Description>Install OpenSSH Server</Description>
+              <Order>15</Order>
+              <RequiresUserInput>false</RequiresUserInput>
+           </SynchronousCommand>
+           <SynchronousCommand wcm:action="add">
+              <CommandLine>powershell -Command "Start-Service sshd"</CommandLine>
+              <Description>Start SSH Service</Description>
+              <Order>16</Order>
+              <RequiresUserInput>false</RequiresUserInput>
+           </SynchronousCommand>
+           <SynchronousCommand wcm:action="add">
+              <CommandLine>powershell -Command "Set-Service -Name sshd -StartupType 'Automatic'"</CommandLine>
+              <Description>Set SSH Service to start automatically</Description>
+              <Order>17</Order>
+              <RequiresUserInput>false</RequiresUserInput>
+           </SynchronousCommand>
+           <SynchronousCommand wcm:action="add">
+              <CommandLine>powershell -Command "New-NetFirewallRule -Name sshd -DisplayName 'OpenSSH Server (sshd)' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22"</CommandLine>
+              <Description>Create SSH Firewall Rule</Description>
+              <Order>18</Order>
+              <RequiresUserInput>false</RequiresUserInput>
+           </SynchronousCommand>
+           <SynchronousCommand wcm:action="add">
               <CommandLine>cmd.exe /c echo Sysprep completed successfully for Windows Server 2022 at %date% %time% > C:\Windows\temp\WIN2022-SETUP.txt</CommandLine>
               <Description>Create setup completion marker file</Description>
-              <Order>15</Order>
+              <Order>19</Order>
               <RequiresUserInput>false</RequiresUserInput>
            </SynchronousCommand>
         </FirstLogonCommands>
