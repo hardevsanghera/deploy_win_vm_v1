@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<unattend xmlns="urn:schemas-microsoft-com:unattend">
+  <settings pass="specialize">
+     <component xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+        <ComputerName>WIN2022-SERVER</ComputerName>
+        <RegisteredOrganization>Dev</RegisteredOrganization>
+        <RegisteredOwner>Dev</RegisteredOwner>
+        <TimeZone>UTC</TimeZone>
+     </component>
+     <component xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Microsoft-Windows-TerminalServices-LocalSessionManager" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" processorArchitecture="amd64">
+        <fDenyTSConnections>false</fDenyTSConnections>
+     </component>
+     <component xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Microsoft-Windows-TerminalServices-RDP-WinStationExtensions" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" processorArchitecture="amd64">
+        <UserAuthentication>0</UserAuthentication>
+     </component>
+     <component xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Networking-MPSSVC-Svc" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+        <FirewallGroups>
+           <FirewallGroup wcm:action="add" wcm:keyValue="RemoteDesktop">
+              <Active>true</Active>
+              <Profile>all</Profile>
+              <Group>@FirewallAPI.dll,-28752</Group>
+           </FirewallGroup>
+           <FirewallGroup wcm:action="add" wcm:keyValue="ICMPv4">
+              <Active>true</Active>
+              <Profile>all</Profile>
+              <Group>@FirewallAPI.dll,-28502</Group>
+           </FirewallGroup>
+        </FirewallGroups>
+     </component>
+  </settings>
+  <settings pass="oobeSystem">
+     <component xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+        <UserAccounts>
+           <AdministratorPassword>
+              <Value>password123</Value>
+              <PlainText>true</PlainText>
+           </AdministratorPassword>
+        </UserAccounts>
+        <AutoLogon>
+           <Password>
+              <Value>password123</Value>
+              <PlainText>true</PlainText>
+           </Password>
+           <Enabled>true</Enabled>
+           <Username>Administrator</Username>
+        </AutoLogon>
+        <FirstLogonCommands>
+           <SynchronousCommand wcm:action="add">
+              <CommandLine>cmd.exe /c netsh firewall add portopening TCP 5985 "Port 5985"</CommandLine>
+              <Description>Win RM port open</Description>
+              <Order>1</Order>
+              <RequiresUserInput>true</RequiresUserInput>
+           </SynchronousCommand>
+           <SynchronousCommand wcm:action="add">
+              <CommandLine>powershell -Command "Enable-PSRemoting -SkipNetworkProfileCheck -Force"</CommandLine>
+              <Description>Enable PS-Remoting</Description>
+              <Order>2</Order>
+              <RequiresUserInput>false</RequiresUserInput>
+           </SynchronousCommand>
+           <SynchronousCommand wcm:action="add">
+              <CommandLine>powershell -Command "Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Force"</CommandLine>
+              <Description>Enable Remote-Signing</Description>
+              <Order>3</Order>
+              <RequiresUserInput>false</RequiresUserInput>
+           </SynchronousCommand>
+           <SynchronousCommand wcm:action="add">
+              <CommandLine>powershell -Command "winrm quickconfig -q"</CommandLine>
+              <Description>Quick configure WinRM</Description>
+              <Order>4</Order>
+              <RequiresUserInput>false</RequiresUserInput>
+           </SynchronousCommand>
+           <SynchronousCommand wcm:action="add">
+              <CommandLine>powershell -Command "winrm set winrm/config/service/auth '@{Basic=\"true\";}'"</CommandLine>
+              <Description>Enable WinRM Basic Authentication</Description>
+              <Order>5</Order>
+              <RequiresUserInput>false</RequiresUserInput>
+           </SynchronousCommand>
+           <SynchronousCommand wcm:action="add">
+              <CommandLine>powershell -Command "winrm set winrm/config/client/auth '@{Basic=\"true\";}'"</CommandLine>
+              <Description>Enable WinRM Client Basic Authentication</Description>
+              <Order>6</Order>
+              <RequiresUserInput>false</RequiresUserInput>
+           </SynchronousCommand>
+           <SynchronousCommand wcm:action="add">
+              <CommandLine>powershell -Command "winrm set winrm/config/service '@{AllowUnencrypted=\"true\";}'"</CommandLine>
+              <Description>Allow WinRM unencrypted traffic</Description>
+              <Order>7</Order>
+              <RequiresUserInput>false</RequiresUserInput>
+           </SynchronousCommand>
+           <SynchronousCommand wcm:action="add">
+              <CommandLine>powershell -Command "Enable-NetFirewallRule -DisplayName 'Windows Remote Management (HTTP-In)'"</CommandLine>
+              <Description>Enable WinRM HTTP Firewall Rule</Description>
+              <Order>8</Order>
+              <RequiresUserInput>false</RequiresUserInput>
+           </SynchronousCommand>
+           <SynchronousCommand wcm:action="add">
+              <CommandLine>powershell -Command "New-NetFirewallRule -DisplayName 'WinRM HTTP' -Direction Inbound -Protocol TCP -LocalPort 5985 -Action Allow"</CommandLine>
+              <Description>Create WinRM HTTP Firewall Rule (backup)</Description>
+              <Order>9</Order>
+              <RequiresUserInput>false</RequiresUserInput>
+           </SynchronousCommand>
+           <SynchronousCommand wcm:action="add">
+              <CommandLine>powershell -Command "Set-Service -Name WinRM -StartupType Automatic"</CommandLine>
+              <Description>Set WinRM service to start automatically</Description>
+              <Order>10</Order>
+              <RequiresUserInput>false</RequiresUserInput>
+           </SynchronousCommand>
+           <SynchronousCommand wcm:action="add">
+              <CommandLine>powershell -Command "Start-Service -Name WinRM"</CommandLine>
+              <Description>Start WinRM service</Description>
+              <Order>11</Order>
+              <RequiresUserInput>false</RequiresUserInput>
+           </SynchronousCommand>
+           <SynchronousCommand wcm:action="add">
+              <CommandLine>powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -Command "Start-Sleep -Seconds 2; $cert = New-SelfSignedCertificate -DnsName $env:COMPUTERNAME,localhost -CertStoreLocation Cert:\LocalMachine\My -KeyUsage DigitalSignature,KeyEncipherment -FriendlyName 'WinRM HTTPS Listener'; $thumb=$cert.Thumbprint; winrm delete winrm/config/Listener?Address=*+Transport=HTTPS 2&gt;$null; winrm create winrm/config/Listener?Address=*+Transport=HTTPS \"@{Hostname='$env:COMPUTERNAME';CertificateThumbprint='$thumb'}\""</CommandLine>
+              <Description>Create HTTPS WinRM listener (idempotent) with self-signed cert incl. localhost SAN</Description>
+              <Order>12</Order>
+              <RequiresUserInput>false</RequiresUserInput>
+           </SynchronousCommand>
+           <SynchronousCommand wcm:action="add">
+              <CommandLine>powershell -Command "Enable-NetFirewallRule -DisplayName 'Windows Remote Management (HTTPS-In)' -ErrorAction SilentlyContinue"</CommandLine>
+              <Description>Enable WinRM HTTPS Firewall Rule</Description>
+              <Order>13</Order>
+              <RequiresUserInput>false</RequiresUserInput>
+           </SynchronousCommand>
+           <SynchronousCommand wcm:action="add">
+              <CommandLine>powershell -Command "New-NetFirewallRule -DisplayName 'WinRM HTTPS' -Direction Inbound -Protocol TCP -LocalPort 5986 -Action Allow -ErrorAction SilentlyContinue"</CommandLine>
+              <Description>Create WinRM HTTPS Firewall Rule (backup)</Description>
+              <Order>14</Order>
+              <RequiresUserInput>false</RequiresUserInput>
+           </SynchronousCommand>
+           <SynchronousCommand wcm:action="add">
+              <CommandLine>cmd.exe /c reg ADD HKLM\SYSTEM\CurrentControlSet\Control\Network\NewNetworkWindowOff /f</CommandLine>
+              <Description>Turn Off Network Discovery</Description>
+              <Order>15</Order>
+              <RequiresUserInput>false</RequiresUserInput>
+           </SynchronousCommand>
+           <SynchronousCommand wcm:action="add">
+              <CommandLine>cmd.exe /c netsh advfirewall firewall set rule group="Network Discovery" new enable=No</CommandLine>
+              <Description>Turn Off Network Discovery</Description>
+              <Order>16</Order>
+              <RequiresUserInput>false</RequiresUserInput>
+           </SynchronousCommand>
+           <SynchronousCommand wcm:action="add">
+              <CommandLine>cmd.exe /c netsh advfirewall firewall set rule group="File and Printer Sharing (Echo Request - ICMPv4-In)" new enable=Yes</CommandLine>
+              <Description>Enable ICMP Ping Response</Description>
+              <Order>17</Order>
+              <RequiresUserInput>false</RequiresUserInput>
+           </SynchronousCommand>
+           <SynchronousCommand wcm:action="add">
+              <CommandLine>cmd.exe /c reg ADD "HKLM\SOFTWARE\Microsoft\Active Setup\Installed Components\{A509B1A7-37FD-4b5f-84B7-617873DDBCC8}" /v IsInstalled /t REG_DWORD /d 0 /f</CommandLine>
+              <Description>Disable IE Enhanced Security for Administrators</Description>
+              <Order>18</Order>
+              <RequiresUserInput>false</RequiresUserInput>
+           </SynchronousCommand>
+           <SynchronousCommand wcm:action="add">
+              <CommandLine>cmd.exe /c reg ADD "HKLM\SOFTWARE\Microsoft\Active Setup\Installed Components\{A509B1A8-37FD-4b5f-84B7-617873DDBCC8}" /v IsInstalled /t REG_DWORD /d 0 /f</CommandLine>
+              <Description>Disable IE Enhanced Security for Users</Description>
+              <Order>19</Order>
+              <RequiresUserInput>false</RequiresUserInput>
+           </SynchronousCommand>
+           <SynchronousCommand wcm:action="add">
+              <CommandLine>powershell -Command "Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components\{A509B1A7-37FD-4b5f-84B7-617873DDBCC8}' -Name IsInstalled -Value 0 -Force"</CommandLine>
+              <Description>PowerShell - Disable IE ESC for Administrators</Description>
+              <Order>20</Order>
+              <RequiresUserInput>false</RequiresUserInput>
+           </SynchronousCommand>
+           <SynchronousCommand wcm:action="add">
+              <CommandLine>powershell -Command "Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Active Setup\Installed Components\{A509B1A8-37FD-4b5f-84B7-617873DDBCC8}' -Name IsInstalled -Value 0 -Force"</CommandLine>
+              <Description>PowerShell - Disable IE ESC for Users</Description>
+              <Order>21</Order>
+              <RequiresUserInput>false</RequiresUserInput>
+           </SynchronousCommand>
+           <SynchronousCommand wcm:action="add">
+              <CommandLine>powershell -Command "Stop-Process -Name ServerManager -Force -ErrorAction SilentlyContinue"</CommandLine>
+              <Description>Stop Server Manager process to refresh ESC status</Description>
+              <Order>22</Order>
+              <RequiresUserInput>false</RequiresUserInput>
+           </SynchronousCommand>
+           <SynchronousCommand wcm:action="add">
+              <CommandLine>cmd.exe /c reg ADD "HKLM\SOFTWARE\Microsoft\ServerManager" /v DoNotOpenServerManagerAtLogon /t REG_DWORD /d 1 /f</CommandLine>
+              <Description>Disable Server Manager at startup</Description>
+              <Order>23</Order>
+              <RequiresUserInput>false</RequiresUserInput>
+           </SynchronousCommand>
+           <SynchronousCommand wcm:action="add">
+              <CommandLine>cmd.exe /c reg ADD "HKLM\SOFTWARE\Microsoft\ServerManager\WindowsAdminCenter" /v DoNotPopWACConsoleAtSMLaunch /t REG_DWORD /d 1 /f</CommandLine>
+              <Description>Disable Windows Admin Center promotion message</Description>
+              <Order>24</Order>
+              <RequiresUserInput>false</RequiresUserInput>
+           </SynchronousCommand>
+           <SynchronousCommand wcm:action="add">
+              <CommandLine>powershell -Command "New-Item -Path 'HKLM:\SOFTWARE\Microsoft\ServerManager\WindowsAdminCenter' -Force; Set-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\ServerManager\WindowsAdminCenter' -Name DoNotPopWACConsoleAtSMLaunch -Value 1 -Type DWord -Force"</CommandLine>
+              <Description>PowerShell - Ensure WAC message is disabled</Description>
+              <Order>25</Order>
+              <RequiresUserInput>false</RequiresUserInput>
+           </SynchronousCommand>
+           <SynchronousCommand wcm:action="add">
+              <CommandLine>powershell -Command "Add-WindowsCapability -Online -Name OpenSSH.Server~~~~0.0.1.0"</CommandLine>
+              <Description>Install OpenSSH Server</Description>
+              <Order>26</Order>
+              <RequiresUserInput>false</RequiresUserInput>
+           </SynchronousCommand>
+           <SynchronousCommand wcm:action="add">
+              <CommandLine>powershell -Command "Start-Service sshd"</CommandLine>
+              <Description>Start SSH Service</Description>
+              <Order>27</Order>
+              <RequiresUserInput>false</RequiresUserInput>
+           </SynchronousCommand>
+           <SynchronousCommand wcm:action="add">
+              <CommandLine>powershell -Command "Set-Service -Name sshd -StartupType 'Automatic'"</CommandLine>
+              <Description>Set SSH Service to start automatically</Description>
+              <Order>28</Order>
+              <RequiresUserInput>false</RequiresUserInput>
+           </SynchronousCommand>
+           <SynchronousCommand wcm:action="add">
+              <CommandLine>powershell -Command "New-NetFirewallRule -Name sshd -DisplayName 'OpenSSH Server (sshd)' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22"</CommandLine>
+              <Description>Create SSH Firewall Rule</Description>
+              <Order>29</Order>
+              <RequiresUserInput>false</RequiresUserInput>
+           </SynchronousCommand>
+           <SynchronousCommand wcm:action="add">
+              <CommandLine>powershell -Command "winrm set winrm/config/service '@{MaxConcurrentOperationsPerUser=\"4294967295\";}'"</CommandLine>
+              <Description>Increase WinRM concurrent operations limit</Description>
+              <Order>30</Order>
+              <RequiresUserInput>false</RequiresUserInput>
+           </SynchronousCommand>
+           <SynchronousCommand wcm:action="add">
+              <CommandLine>powershell -Command "winrm set winrm/config/service '@{MaxConnections=\"300\";}'"</CommandLine>
+              <Description>Increase WinRM max connections</Description>
+              <Order>31</Order>
+              <RequiresUserInput>false</RequiresUserInput>
+           </SynchronousCommand>
+           <SynchronousCommand wcm:action="add">
+              <CommandLine>powershell -Command "Test-WSMan localhost"</CommandLine>
+              <Description>Test WinRM configuration</Description>
+              <Order>32</Order>
+              <RequiresUserInput>false</RequiresUserInput>
+           </SynchronousCommand>
+           <SynchronousCommand wcm:action="add">
+              <CommandLine>cmd.exe /c echo Sysprep completed successfully for Windows Server 2022 at %date% %time% > C:\Windows\temp\WIN2022-SETUP.txt</CommandLine>
+              <Description>Create setup completion marker file</Description>
+              <Order>33</Order>
+              <RequiresUserInput>false</RequiresUserInput>
+           </SynchronousCommand>
+        </FirstLogonCommands>
+        <OOBE>
+           <HideEULAPage>true</HideEULAPage>
+           <SkipMachineOOBE>true</SkipMachineOOBE>
+           <SkipUserOOBE>true</SkipUserOOBE>
+        </OOBE>
+     </component>
+     <component xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="Microsoft-Windows-International-Core" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS">
+        <InputLocale>en-US</InputLocale>
+        <SystemLocale>en-US</SystemLocale>
+        <UILanguageFallback>en-us</UILanguageFallback>
+        <UILanguage>en-US</UILanguage>
+        <UserLocale>en-US</UserLocale>
+     </component>
+  </settings>
+</unattend>
