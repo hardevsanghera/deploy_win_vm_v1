@@ -125,15 +125,15 @@ Found 3 clusters
 AVAILABLE CLUSTERS
 ============================================================
  1. NTNX-Cluster-01
-     UUID: 00061663-4a18-7c31-185b-ac1f6b6029e1
+     UUID: 00061663-4a18-7c31-185b-ac1f6b60ffff
 
  2. NTNX-Cluster-02
-     UUID: 00061663-4a18-7c31-185b-ac1f6b6029e2
+     UUID: 00061663-4a18-7c31-185b-ac1f6b60ffff
 
 Please select a cluster (1-2): 2
 
 Selected cluster: NTNX-Cluster-02
-UUID: 00061663-4a18-7c31-185b-ac1f6b6029e2
+UUID: 00061663-4a18-7c31-185b-ac1f6b60ffff
 
 [... subnet and image selection ...]
 
@@ -171,9 +171,9 @@ DEPLOYING WINDOWS VM
 
 📋 VM Configuration:
   Name: WIN-WEB-01
-  Cluster: NTNX-Cluster-02 (00061663-4a18-7c31-185b-ac1f6b6029e2)
-  Subnet: Production-Network (12345678-1234-5678-9abc-123456789012)
-  Image: Windows-Server-2022 (abcd1234-5678-90ef-ghij-klmn12345678)
+  Cluster: NTNX-Cluster-02 (00061663-4a18-7c31-185b-ac1f6b60ffff)
+  Subnet: Production-Network (12345678-1234-5678-9abc-12345678ffff)
+  Image: Windows-Server-2022 (abcd1234-5678-90ef-ghij-klmn1234ffff)
   Sysprep: sysprep-win2019-AAA.xml
 
 🚀 Deploy VM 'WIN-WEB-01'? (y/N): y
@@ -181,8 +181,8 @@ DEPLOYING WINDOWS VM
 🌐 Making API call to: https://10.1.1.100:9440/api/nutanix/v3/vms
 
 ✅ VM creation initiated successfully!
-VM UUID: def12345-6789-0abc-def1-234567890abc
-Task UUID: ghi67890-abcd-ef12-3456-7890abcdef12
+VM UUID: def12345-6789-0abc-def1-23456789ffff
+Task UUID: ghi67890-abcd-ef12-3456-7890abcdffff
 Status: PENDING
 
 📊 Check Prism Central for VM creation progress
@@ -198,20 +198,20 @@ Contains the complete selected resource configuration for VM deployment. Generat
 {
   "pc_ip": "10.1.1.100",
   "username": "admin",
-  "target_cluster": "NTNX-Cluster-02=00061663-4a18-7c31-185b-ac1f6b6029e2",
+  "target_cluster": "NTNX-Cluster-02=00061663-4a18-7c31-185b-ac1f6b60ffff",
   "cluster_name": "NTNX-Cluster-02",
   "cluster_uuid": "00061663-4a18-7c31-185b-ac1f6b6029e2",
-  "target_subnet": "Production-Network=12345678-1234-5678-9abc-123456789012",
+  "target_subnet": "Production-Network=12345678-1234-5678-9abc-12345678ffff",
   "subnet_name": "Production-Network",
-  "subnet_uuid": "12345678-1234-5678-9abc-123456789012",
+  "subnet_uuid": "12345678-1234-5678-9abc-12345678ffff",
   "subnet_vlan_id": "100",
-  "target_image": "Windows-Server-2022=abcd1234-5678-90ef-ghij-klmn12345678",
+  "target_image": "Windows-Server-2022=abcd1234-5678-90ef-ghij-klmn1234ffff",
   "image_name": "Windows-Server-2022",
-  "image_uuid": "abcd1234-5678-90ef-ghij-klmn12345678",
+  "image_uuid": "abcd1234-5678-90ef-ghij-klmn1234ffff",
   "image_type": "DISK_IMAGE",
   "image_size_bytes": 16642998272,
   "sysprep_filename": "sysprep_windows_server.xml",
-  "sysprep_filepath": "C:\\Users\\hardev.sanghera\\Documents\\v3\\deploy_win_vm\\sysprep_windows_server.xml",
+  "sysprep_filepath": "C:\\Users\\hardev\\Documents\\v3\\deploy_win_vm\\sysprep_windows_server.xml",
   "sysprep_size_bytes": 1847
 }
 ```
@@ -223,6 +223,8 @@ Sysprep XML files must:
 - Have filenames starting with "sysprep" and ending with ".xml"
 - Contain `<ComputerName>` and `<AdministratorPassword>` elements
 - Examples: `sysprep-win2019-AAA.xml`, `sysprep-win2022-prod.xml`, `sysprep_windows_server.xml`
+- The provided syspre files should be edited to meet your needs.  sysprep-[win2019|win2022]-AAA.xml
+  work OK, sysprep-win2022-BBB.xml is experimental, best not use it!
 
 The script automatically updates these elements in the sysprep file:
 - `<ComputerName>` - Set to the entered VM name
