@@ -12,7 +12,7 @@ Navigate to your project directory and create a new virtual environment:
 
 ```powershell
 # Navigate to project directory
-cd C:\Users\hardev.sanghera\Documents\v3\deploy_win_vm_v1
+cd C:\Users\myid\Documents\v3\deploy_win_vm_v1
 
 # Create virtual environment named 'env'
 python -m venv env
@@ -68,8 +68,8 @@ deactivate
 
 **Verify environment is active** (you should see `(env)` in your prompt):
 ```powershell
-PS C:\Users\hardev.sanghera\Documents\v3\deploy_win_vm_v1> # Without venv
-(env) PS C:\Users\hardev.sanghera\Documents\v3\deploy_win_vm_v1> # With venv active
+PS C:\Users\myid\Documents\v3\deploy_win_vm_v1> # Without venv
+(env) PS C:\Users\myid\Documents\v3\deploy_win_vm_v1> # With venv active
 ```
 
 ## Phase 1: Resource Selection
